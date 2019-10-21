@@ -1,8 +1,8 @@
 import svn.remote
+import pytz
+import tweepy
 from datetime import date
 from discord_webhook import DiscordWebhook, DiscordEmbed
-import time
-import tweepy
 from pbwrap import Pastebin
 
 # Set script up to work with Twitter (obtain via Twitter dev page)
@@ -18,7 +18,15 @@ pb = Pastebin(API_DEV_KEY)
 pb.authenticate("YOUR PASTEBIN USERNAME", "YOUR PASTEBIN PASSWORD")
 
 # Get today's date
+local_tz = pytz.timezone('YOUR_TIMEZONE')
 today = date.today()
+
+def utc_to_local(utc_dt):
+    local_dt = utc_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
+    return local_tz.normalize(local_dt) # .normalize might be unnecessary
+	
+def aslocaltimestr(utc_dt):
+    return utc_to_local(utc_dt).strftime('%m/%d/%Y, %I:%M:%S %p')
 
 #Set the URLs for the svn and the Discord webhook
 r = svn.remote.RemoteClient('ADDRESS TO YOUR SVN SERVER')
@@ -47,14 +55,14 @@ for e in r.log_default():
 			
 		# Set up embed information
 		embed.add_embed_field(name='Author', value=str(e.author))
-		embed.add_embed_field(name='Date', value=str(e.date.strftime("%m/%d/%Y, %H:%M:%S")))
+		embed.add_embed_field(name='Date', value=str(aslocaltimestr(e.date)))
 		embed.add_embed_field(name='Revision', value=str(e.revision))
 		embed.add_embed_field(name='Commit Message', value=str(e.msg))
 		webhook.add_embed(embed)	#adds embed to the webhook
 		
 		# Write to changelog.txt
 		outfile.write("Author: " + e.author + '\n')
-		outfile.write("Date: " + e.date.strftime("%m/%d/%Y, %H:%M:%S") + '\n')
+		outfile.write("Date: " + aslocaltimestr(e.date) + '\n')
 		outfile.write("Revision #" + str(e.revision) + '\n')
 		outfile.write(e.msg + '\n')
 		outfile.write('\n')
