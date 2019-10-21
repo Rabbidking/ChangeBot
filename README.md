@@ -10,3 +10,5 @@ Requires the following Python3 extensions:
 * Tweepy: https://www.tweepy.org/
 
 * pbwrap: https://pypi.org/project/pbwrap/
+
+* pytz: https://pypi.org/project/pytz/
